@@ -7,6 +7,9 @@ uses crt,math;
 type
  mem = array[1..26] of double;
 
+const
+   e:double = 2.7182821828;
+
 VAR
    anglemode	   : integer;
    filehandle	   : file of mem;
@@ -129,9 +132,9 @@ Begin
 
       c := readkey;
       
-      if ord(c) = 8 then
+      if (ord(c) = 8) and (length(collected) > 0) then
 	 begin
-	    delete(collected,length(collected)-1,1);
+	    delete(collected,length(collected),1);
 	 end;
       
       if IsNumber(c) then
@@ -191,13 +194,59 @@ begin
 
       {handle non number keystrokes}
       case (k) of
+	
+	76  : begin { 'L' LastX }
+		 push(LastX);
+	      end;
+
 
 	65  : begin  { 'A' angle mode - toggle degrees or radians }
 		 if anglemode = 0 then anglemode := 1 else anglemode := 0;
 	      end;
 	
-	108 : begin { l LastX }
-		 push(LastX);
+	115 : begin  { 's' sin }
+		 mtemp1 := pop;
+		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
+		 Push(sin(mtemp1));
+	      end;
+
+	63  : begin {'?' helpscreen }
+		 gotoxy(1,1);
+		 clrscr;
+		 writeln('|-Calcula Help ---------------------------------------------------------------|');
+		 writeln('| 0-9 . _ [backspace]  Number entry                       [esc] exit program  |');
+		 writeln('| _ changes sign, [backspace] deletes last digit                              |');
+		 writeln('|-----------------------------------------------------------------------------|');
+		 writeln('| + - * / ^   Math add,subtract,multiply,divide, raise to power               |');
+		 writeln('| s sin, c cos, t tangent, q square root, r reciprocal                        |');
+		 writeln('| l logx - Log base Stack level 1, of number in Stack level 2                 |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+		 writeln('|-----------------------------------------------------------------------------|');
+		 writeln('| L Last X, >x Store to reg x, >x Recall from reg x                           |');
+		 writeln('| ] Save all to file, [ Read all from writeln                                 |');
+		 writeln('|-----------------------------------------------------------------------------|');
+		 writeln('| p pi, e Euler Number                                                        |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+	
+		 writeln('|------------------------------------------------- Press any key to continue -|');
+		 c := readkey;
+	      end;
+
+
+	95  : begin { 'c' cosin }
+		 mtemp1 := pop;
+		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
+		 Push(cos(mtemp1));
+	      end;
+
+	116 : begin { 't' tan }
+		 mtemp1 := pop;
+		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
+		 Push(tan(mtemp1));
 	      end;
 
 	83  : begin { del - drop s1}
@@ -229,6 +278,10 @@ begin
 		 Push(Pi);
 	      end;
 
+	101 : begin { 'e' euler's number }
+		 push(e);
+	      end;
+
 	113 : begin {q square root}
 		 if s[1] < 0 then
 		    begin
@@ -251,11 +304,6 @@ begin
 		end;
 	     end;
 
-	115 : begin  { 's' sin }
-		 mtemp1 := pop;
-		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
-		 Push(sin(mtemp1));
-	      end;
 
 	42  : begin {'*'}
 		LastX := s[1];
