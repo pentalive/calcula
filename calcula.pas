@@ -78,7 +78,7 @@ begin
    statusx := wherex;
    statusy := wherey;
    writeln('|         ',collected:60,'        |');
-   writeln('|-----------------------------------------------------------------------------|');
+   writeln('|----------------------------------------------------------------? for help---|');
 end;
 
 
@@ -194,7 +194,7 @@ begin
 
       {handle non number keystrokes}
       case (k) of
-	
+
 	76  : begin { 'L' LastX }
 		 push(LastX);
 	      end;
@@ -217,7 +217,8 @@ begin
 		 writeln('| 0-9 . _ [backspace]  Number entry                       [esc] exit program  |');
 		 writeln('| _ changes sign, [backspace] deletes last digit                              |');
 		 writeln('|-----------------------------------------------------------------------------|');
-		 writeln('| + - * / ^   Math add,subtract,multiply,divide, raise to power               |');
+		 writeln('| + - * / ^   Math: add,subtract,multiply,divide, s2^s1                        |');
+		 writeln('|-----------------------------------------------------------------------------|');
 		 writeln('| s sin, c cos, t tangent, q square root, r reciprocal                        |');
 		 writeln('| l logx - Log base Stack level 1, of number in Stack level 2                 |');
 		 writeln('|                                                                             |');
@@ -315,13 +316,27 @@ begin
 		mtemp1 := Pop;
 		mtemp2 := Pop;
 		push(mtemp2 - mtemp1);
-	     end;
+	      end;
 
-	94  : begin {'^' y^x }
+		108 : begin { 'l' logx }
+		 mtemp1 := pop;
+		 mtemp2 := pop;
+		 if (mtemp2 = 0) then
+		 begin
+		    collected := 'logx with x is zero?';
+		 end else begin
+		    LastX := mtemp1;
+		    push(logn(mtemp1,mtemp2));
+		 end;
+	      end;
+	
+
+
+	94  : begin {'^' x^y }
 		LastX := s[1];
 		mtemp1 := Pop;
 		mtemp2 := Pop;
-		push(mtemp2 ** mtemp1);
+		push(mtemp1 ** mtemp2);
 	     end;
 
         62  : begin {'>' store }
