@@ -8,6 +8,7 @@ type
  mem = array[1..26] of double;
 
 VAR
+   anglemode	   : integer;
    filehandle	   : file of mem;
    s		   : mem;
    r		   : mem;
@@ -67,7 +68,9 @@ begin
       i := i - 1;
    until i = 0;
    writeln('|----------------------------------------|------------------------------------|');
-   writeln('|LastX ',LastX:15:4,'                   |                                    |');
+   write('|LastX ',LastX:15:4,'   ');
+   if anglemode = 0 then write('DEG') else write('RAD');
+   writeln('             |                                    |');
    writeln('|----------------------------------------|------------------------------------|');
    statusx := wherex;
    statusy := wherey;
@@ -155,6 +158,7 @@ begin
 
    stacklift := true;
    LastX := 0;
+   anglemode := 0;
    
    for i:=1 to 26 do begin
       s[i] := 0.0;
@@ -188,6 +192,9 @@ begin
       {handle non number keystrokes}
       case (k) of
 
+	65  : begin  { 'A' angle mode - toggle degrees or radians }
+		 if anglemode = 0 then anglemode := 1 else anglemode := 0;
+	      end;
 	
 	108 : begin { l LastX }
 		 push(LastX);
@@ -218,6 +225,10 @@ begin
 		   end;
 	     end;
 
+	112 : begin {p pi 3.1415...}
+		 Push(Pi);
+	      end;
+
 	113 : begin {q square root}
 		 if s[1] < 0 then
 		    begin
@@ -239,6 +250,12 @@ begin
 		   push(mtemp2 / mtemp1);
 		end;
 	     end;
+
+	115 : begin  { 's' sin }
+		 mtemp1 := pop;
+		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
+		 Push(sin(mtemp1));
+	      end;
 
 	42  : begin {'*'}
 		LastX := s[1];
