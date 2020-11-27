@@ -1,4 +1,9 @@
+
 {$mode objfpc}{$H+}
+
+{ This program licenced under the GNU general licence V3  } 
+{ See file LICENSE for details or visit                   }
+{ https://www.gnu.org/licenses/gpl-3.0.en.html            }
 
 program calcula;
 
@@ -11,19 +16,24 @@ const
    e:double = 2.7182821828;
 
 VAR
-   anglemode	   : integer;
-   filehandle	   : file of mem;
-   s		   : mem;
-   r		   : mem;
-   collected	   : string;
-   i,k		   : integer;
-   c		   : char;
-   done		   : boolean;
-   stacklift	   : boolean;
-   t		   : double;  {temp!}
-   mtemp1	   : double;
-   mtemp2	   : double;
-   statusx,statusy : tcrtcoord;
+   filehandle	   : file of mem;  { to load or save registers and stack }
+   s		   : mem;          { The STACK                           }
+   r		   : mem;          { The Registers                       }
+
+   { The Statistical Registers  }
+   SumX,SumY,n,Sumx2,Sumy2,SumXY:double;
+   
+   anglemode	   : integer;   { 0= degrees 1=rads should probs be}
+                                { an enumerated type               }
+   collected	   : string;    { collect number, keep error text  }
+   i,k		   : integer;   { integer indexes - k is ord of c  }
+   c		   : char;      { The readkey pressed by user      }
+   done		   : boolean;   { Remembers if esc is pressed      }
+   stacklift	   : boolean;   { Automatic Stack Lift             }   
+   t		   : double;    { gemeral temporary storage        }
+   mtemp1	   : double;    { Used when pulling numbers off    }
+   mtemp2	   : double;    { the stack for calculations       }
+   statusx,statusy : tcrtcoord; { location of the status line      }
    regc		   : char;      { char for getting register letter }
    regk		   : integer;   { ord of regc                      }
    LastX	   : double;    { store LastX values               }
@@ -71,9 +81,9 @@ begin
       i := i - 1;
    until i = 0;
    writeln('|----------------------------------------|------------------------------------|');
-   write('|LastX ',LastX:15:4,'   ');
-   if anglemode = 0 then write('DEG') else write('RAD');
-   writeln('             |                                    |');
+   writeln('|         x        y        n      x^2      y^2       xy         LastX        |');
+   write('| ',SumX:9:4,SumY:9:4,n:9:0,SumX2:9:4,SumY2:9:4,SumXY:9:4,LastX:15:4);
+   if anglemode = 0 then writeln(' DEG   |') else writeln(' RAD   |');
    writeln('|----------------------------------------|------------------------------------|');
    statusx := wherex;
    statusy := wherey;
@@ -162,6 +172,14 @@ begin
    stacklift := true;
    LastX := 0;
    anglemode := 0;
+
+   SumX  := 0.0;
+   SumY  := 0.0;
+   n     := 0.0;
+   SumX2 := 0.0;
+   SumY2 := 0.0;
+   SumXY := 0.0;
+   
    
    for i:=1 to 26 do begin
       s[i] := 0.0;
@@ -217,7 +235,7 @@ begin
 		 writeln('| 0-9 . _ [backspace]  Number entry                       [esc] exit program  |');
 		 writeln('| _ changes sign, [backspace] deletes last digit                              |');
 		 writeln('|-----------------------------------------------------------------------------|');
-		 writeln('| + - * / ^   Math: add,subtract,multiply,divide, s2^s1                        |');
+		 writeln('| + - * / ^   Math: add,subtract,multiply,divide, s2^s1                       |');
 		 writeln('|-----------------------------------------------------------------------------|');
 		 writeln('| s sin, c cos, t tangent, q square root, r reciprocal                        |');
 		 writeln('| l logx - Log base Stack level 1, of number in Stack level 2                 |');
@@ -227,6 +245,7 @@ begin
 		 writeln('|-----------------------------------------------------------------------------|');
 		 writeln('| L Last X, >x Store to reg x, >x Recall from reg x                           |');
 		 writeln('| ] Save all to file, [ Read all from writeln                                 |');
+		 writeln('| X s1 exchange s2                                                            |');
 		 writeln('|-----------------------------------------------------------------------------|');
 		 writeln('| p pi, e Euler Number                                                        |');
 		 writeln('|                                                                             |');
@@ -237,6 +256,13 @@ begin
 		 c := readkey;
 	      end;
 
+	88  : begin {'X' s1 exchange s2 }
+		 mtemp1 := s[1];
+		 mtemp2 := s[2];
+		 s[2] := mtemp1;
+		 s[1] := mtemp2;
+	      end;
+	
 
 	95  : begin { 'c' cosin }
 		 mtemp1 := pop;
