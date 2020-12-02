@@ -39,8 +39,6 @@ VAR
    LastX	   : double;    { store LastX values               }
 
 function IsNumber(c:char):boolean;
-
-
 begin
 
    IsNumber := false;
@@ -66,7 +64,9 @@ begin
 
    if c='' then c := ' ';
    
-   writeln('|-Calcula ------------------------------------------------',c:2,k:04,'--------------|');
+   write('|-Calcula ---------------------------------------------',c:2,k:04);
+   if stacklift then write('[s]') else write('[ ]');
+   writeln('--------------|');
    writeln('| stack                                  | registers                          |');
    writeln('|----------------------------------------|------------------------------------|');
    i := 13;
@@ -165,8 +165,253 @@ Begin
    CollectNumber := number;
 end;
 
+procedure factorial; { calculate factorial }
+
+begin
+   mtemp1 := pop;
+   if (frac(mtemp1) > 0.0) or (mtemp1 < 0.0) then
+   begin
+      collected := 'Factorial of negative or non-integer?';
+   end else begin
+      if (mtemp1 > 170.0) then
+      Begin
+	 collected := 'factorial arg too big';
+      end else begin
+	 t := 1;
+	 mtemp1 := int(mtemp1);
+	 for i:= 1 to round(mtemp1) do
+	 begin
+	    t := t * i;
+	 end;
+	 push(t);
+      end;
+   end;
+end;
+
+procedure plastx; { push lastx to stack }
+begin
+   push(LastX);
+end;
+
+procedure anglemodetoggle; { toggle degrees or radians }
+begin 
+   if anglemode = 0 then anglemode := 1 else anglemode := 0;
+end;
+	
+procedure sinf;  { calculate sin(s1)  }
+begin
+   mtemp1 := pop;
+   if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
+   Push(sin(mtemp1));
+end;
+
+procedure helpscreen; {'?'}
+      begin {'?' helpscreen }
+		 gotoxy(1,1);
+		 clrscr;
+		 writeln('|-Calcula Help ---------------------------------------------------------------|');
+		 writeln('| 0-9 . _ [backspace]  Number entry                       [esc] exit program  |');
+		 writeln('| _ changes sign, [backspace] deletes last digit                              |');
+		 writeln('|-----------------------------------------------------------------------------|');
+		 writeln('| + - * / ^   Math: add,subtract,multiply,divide, s2^s1                       |');
+		 writeln('|-----------------------------------------------------------------------------|');
+		 writeln('| s sin, c cos, t tangent, q square root, r reciprocal                        |');
+		 writeln('| l logx - Log base Stack level 1, of number in Stack level 2                 |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+		 writeln('|-----------------------------------------------------------------------------|');
+		 writeln('| L Last X, >x Store to reg x, >x Recall from reg x                           |');
+		 writeln('| ] Save all to file, [ Read all from writeln                                 |');
+		 writeln('| X s1 exchange s2                                                            |');
+		 writeln('|-----------------------------------------------------------------------------|');
+		 writeln('| p pi, e Euler Number                                                        |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+		 writeln('|                                                                             |');
+	
+		 writeln('|------------------------------------------------- Press any key to continue -|');
+		 c := readkey;
+	      end;
+
+procedure xchange;  { s1 exchange s2 }
+begin
+   
+   mtemp1 := s[1];
+   mtemp2 := s[2];
+   s[2] := mtemp1;
+   s[1] := mtemp2;
+end;
+	
+
+procedure cosf; { cosin }
+begin
+   mtemp1 := pop;
+   if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
+   Push(cos(mtemp1));
+end;
+
+procedure tanf; { tangent function }
+begin 
+   mtemp1 := pop;
+   if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
+   Push(tan(mtemp1));
+end;
+
+procedure drop; {drop s1}
+begin 
+   pop;
+end;
+
+procedure quit; {[esc]}
+begin
+   done := true;
+end;
+
+procedure add;  {s1 <- s1 + s2}
+begin  {'+'}
+   LastX := s[1];
+   Push(Pop + Pop);
+end;
+
+procedure divide;  { s2 / s1 -> s1}
+begin 
+   if s[1] = 0 then
+   begin
+      collected := 'Divide by zero? '
+   end else begin
+      LastX := s[1];
+      mtemp1 := Pop;
+      mtemp2 := Pop;
+      push(mtemp2 / mtemp1);
+   end;
+end;
+
+procedure constPi; {p pi 3.1415...}
+begin
+   Push(Pi);
+end;
+
+procedure constE;  { 'e' euler's number }
+begin
+   push(e);
+end;
+
+procedure sqroot; { 'q' square root }
+begin
+   if s[1] < 0 then
+   begin
+      collected := 'Square root of a negative?';
+   end else begin
+      LastX := s[1];
+      push(sqrt(pop));
+   end;	  
+end;
+
+procedure reciprocal;  {s1 <- 1 / s1}
+begin 
+   if s[1] = 0 then
+   begin
+      collected := 'Reciprocal of zero?'
+   end else begin
+      LastX := s[1];
+      mtemp1 := Pop;
+      mtemp2 := 1.0;
+      push(mtemp2 / mtemp1);
+   end;
+end;
+
+procedure multiply; {s1 <- s1 * s2}
+begin 
+   LastX := s[1];
+   Push(Pop*Pop);
+end;
 
 
+procedure subtract; {s1 <- s2 - s1}
+begin
+   LastX := s[1];
+   mtemp1 := Pop;
+   mtemp2 := Pop;
+   push(mtemp2 - mtemp1);
+end;
+
+procedure logarithm; { s1 = log(s2 s1 base) }
+begin
+   mtemp1 := pop;
+   mtemp2 := pop;
+   if (mtemp2 = 0) then
+   begin
+      collected := 'logx with x is zero?';
+   end else begin
+      LastX := mtemp1;
+      push(logn(mtemp1,mtemp2));
+   end;
+end;
+	
+procedure power; {s1 ^ s2 -> s1}
+begin 
+   LastX := s[1];
+   mtemp1 := Pop;
+   mtemp2 := Pop;
+   push(mtemp1 ** mtemp2);
+end;
+
+
+
+
+procedure store; {s1 copied to register}
+begin
+   repeat
+      regc := UpCase(readkey);
+      regk := ord(regc);
+   until regc in ['A'..'Z'];
+   write('Store ',regc);
+   regk := regk - ord('A') + 1;
+   r[regk] := s[1];
+end;
+
+procedure recall;  {push register to stack}
+begin 
+   repeat
+      regc := UpCase(readkey);
+      regk := ord(regc);
+   until regc in ['A'..'Z'];
+   write('Recall ',regc);
+   regk := regk - ord('A') + 1;
+   Push(r[regk]);
+end;
+
+procedure enter; { dup top of stack }
+begin
+   t := Pop;
+   Push(t);
+   Push(t);
+end;
+
+procedure recallall; {recall all stack and registers from file}
+begin
+   AssignFile(filehandle,'.calculamemory');
+   Reset(filehandle);
+   Read(filehandle,s);
+   Read(filehandle,r);
+   CloseFile(filehandle);
+   collected := 'Restored registers and stack';
+   LastX := s[1];
+end;
+
+procedure saveall; { write all stack and registers to file }
+begin 
+   AssignFile(filehandle,'.calculamemory');
+   ReWrite(filehandle);
+   write(filehandle,s);
+   write(filehandle,r);
+   CloseFile(filehandle);
+   collected := 'Saved registers and stack';
+end;
+
+
+{---------------------------------------------------------- main  program-}
 begin
 
    stacklift := true;
@@ -180,6 +425,8 @@ begin
    SumY2 := 0.0;
    SumXY := 0.0;
    
+
+
    
    for i:=1 to 26 do begin
       s[i] := 0.0;
@@ -213,210 +460,31 @@ begin
       {handle non number keystrokes}
       case (k) of
 
-	76  : begin { 'L' LastX }
-		 push(LastX);
-	      end;
-
-
-	65  : begin  { 'A' angle mode - toggle degrees or radians }
-		 if anglemode = 0 then anglemode := 1 else anglemode := 0;
-	      end;
-	
-	115 : begin  { 's' sin }
-		 mtemp1 := pop;
-		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
-		 Push(sin(mtemp1));
-	      end;
-
-	63  : begin {'?' helpscreen }
-		 gotoxy(1,1);
-		 clrscr;
-		 writeln('|-Calcula Help ---------------------------------------------------------------|');
-		 writeln('| 0-9 . _ [backspace]  Number entry                       [esc] exit program  |');
-		 writeln('| _ changes sign, [backspace] deletes last digit                              |');
-		 writeln('|-----------------------------------------------------------------------------|');
-		 writeln('| + - * / ^   Math: add,subtract,multiply,divide, s2^s1                       |');
-		 writeln('|-----------------------------------------------------------------------------|');
-		 writeln('| s sin, c cos, t tangent, q square root, r reciprocal                        |');
-		 writeln('| l logx - Log base Stack level 1, of number in Stack level 2                 |');
-		 writeln('|                                                                             |');
-		 writeln('|                                                                             |');
-		 writeln('|                                                                             |');
-		 writeln('|-----------------------------------------------------------------------------|');
-		 writeln('| L Last X, >x Store to reg x, >x Recall from reg x                           |');
-		 writeln('| ] Save all to file, [ Read all from writeln                                 |');
-		 writeln('| X s1 exchange s2                                                            |');
-		 writeln('|-----------------------------------------------------------------------------|');
-		 writeln('| p pi, e Euler Number                                                        |');
-		 writeln('|                                                                             |');
-		 writeln('|                                                                             |');
-		 writeln('|                                                                             |');
-	
-		 writeln('|------------------------------------------------- Press any key to continue -|');
-		 c := readkey;
-	      end;
-
-	88  : begin {'X' s1 exchange s2 }
-		 mtemp1 := s[1];
-		 mtemp2 := s[2];
-		 s[2] := mtemp1;
-		 s[1] := mtemp2;
-	      end;
-	
-
-	95  : begin { 'c' cosin }
-		 mtemp1 := pop;
-		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
-		 Push(cos(mtemp1));
-	      end;
-
-	116 : begin { 't' tan }
-		 mtemp1 := pop;
-		 if anglemode = 0 then mtemp1 := mtemp1 * (pi / 180.0);
-		 Push(tan(mtemp1));
-	      end;
-
-	83  : begin { del - drop s1}
-		pop;
-	     end;
-
-	27  : begin { esc }
-		done := true;
-	     end;
-
-        43  : begin  {'+'}
-		LastX := s[1];
-		Push(Pop + Pop);
-	     end;
-
-	47  : begin {'/ divide'}
-		if s[1] = 0 then
-		   begin
-		      collected := 'Divide by zero? '
-		   end else begin
-		      LastX := s[1];
-                      mtemp1 := Pop;
-		      mtemp2 := Pop;
-		      push(mtemp2 / mtemp1);
-		   end;
-	     end;
-
-	112 : begin {p pi 3.1415...}
-		 Push(Pi);
-	      end;
-
-	101 : begin { 'e' euler's number }
-		 push(e);
-	      end;
-
-	113 : begin {q square root}
-		 if s[1] < 0 then
-		    begin
-		       collected := 'Square root of a negative?';
-		    end else begin
-		       LastX := s[1];
-		       push(sqrt(pop));
-		    end;	  
-	      end;
-	
-	114 : begin {'r reciprocal'}
-		if s[1] = 0 then
-		begin
-		   collected := 'Reciprocal of zero?'
-		end else begin
-		   LastX := s[1];
-		   mtemp1 := Pop;
-		   mtemp2 := 1.0;
-		   push(mtemp2 / mtemp1);
-		end;
-	     end;
-
-
-	42  : begin {'*'}
-		LastX := s[1];
-		Push(Pop*Pop);
-	     end;
-
-	45  : begin {'-'}
-		LastX := s[1];
-		mtemp1 := Pop;
-		mtemp2 := Pop;
-		push(mtemp2 - mtemp1);
-	      end;
-
-		108 : begin { 'l' logx }
-		 mtemp1 := pop;
-		 mtemp2 := pop;
-		 if (mtemp2 = 0) then
-		 begin
-		    collected := 'logx with x is zero?';
-		 end else begin
-		    LastX := mtemp1;
-		    push(logn(mtemp1,mtemp2));
-		 end;
-	      end;
-	
-
-
-	94  : begin {'^' x^y }
-		LastX := s[1];
-		mtemp1 := Pop;
-		mtemp2 := Pop;
-		push(mtemp1 ** mtemp2);
-	     end;
-
-        62  : begin {'>' store }
-		repeat
-		   regc := UpCase(readkey);
-		   regk := ord(regc);
-		until regc in ['A'..'Z'];
-		write('Store ',regc);
-		regk := regk - ord('A') + 1;
-		r[regk] := s[1];
-	     end;
-
-	60  : begin {'<' recall }
-		repeat
-		   regc := UpCase(readkey);
-		   regk := ord(regc);
-		until regc in ['A'..'Z'];
-		write('Recall ',regc);
-		regk := regk - ord('A') + 1;
-		Push(r[regk]);
-	     end;
-
-
-	
-	13  : begin { enter }
-		t := Pop;
-		Push(t);
-		Push(t);
-	     end;
-
-	91  : begin { [ recall }
-		 AssignFile(filehandle,'.calculamemory');
-		 Reset(filehandle);
-		 Read(filehandle,s);
-		 Read(filehandle,r);
-		 CloseFile(filehandle);
-		 collected := 'Restored registers and stack';
-		 LastX := s[1];
-	      end;
-
-	93  : begin { ] Save }
-		 AssignFile(filehandle,'.calculamemory');
-
-		 ReWrite(filehandle);
-		 write(filehandle,s);
-		 write(filehandle,r);
-		 CloseFile(filehandle);
-		 collected := 'Saved registers and stack';
-	      end;
-	
-      else
-         begin
-            writeln('key code:',k:04);
-         end;
+	76  : plastx;          {'L'}
+	33  : factorial;       {'!'}
+	65  : anglemodetoggle; {'A'}
+	115 : sinf;            {'s'}
+	63  : helpscreen;      {'?'}
+	88  : xchange;         {'X'}
+	95  : cosf;            {'c'}
+	116 : tanf;            {'t'}
+	83  : drop;            {[del]}
+	27  : quit;            {[esc]}
+	43  : add;             {'+'}
+	47  : divide;          {'\'}
+	112 : constPi;         {'p'}
+	101 : constE;          {'e'}
+	113 : sqroot;          {'q'}
+	114 : reciprocal;      {'r'}
+	42  : multiply;        {'*'}
+	45  : subtract;        {'-'}
+	108 : logarithm;       {'l'}
+	94  : power;           {'^'}
+	62  : store;           {'>'}
+	60  : recall;          {'<'}
+	13  : enter;           {[enter]}
+	91  : recallall;       {'['}
+	93  : saveall;         {']'}
       end; {case}
 
    until done;
