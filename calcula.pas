@@ -410,6 +410,36 @@ begin
    collected := 'Saved registers and stack';
 end;
 
+procedure statadd; {add the top two stack to the statistics registers}
+begin
+   SumX := SumX + s[1];
+   SumY := Sumy + s[2];
+   n := n + 1;
+   Sumx2 := Sumx2 + (s[1] * s[1]);
+   Sumy2 := Sumy2 + (s[2] * s[2]);
+   SumXY := SumXY + (s[1] * s[1]);
+end;
+
+procedure statsub; {subtract the top two stack from the statistics registers}
+begin
+   SumX := SumX - s[1];
+   SumY := Sumy - s[2];
+   n := n - 1;
+   Sumx2 := Sumx2 - (s[1] * s[1]);
+   Sumy2 := Sumy2 - (s[2] * s[2]);
+   SumXY := SumXY - (s[1] * s[1]);
+end;
+
+procedure statclr; { clear the stat registers }
+begin
+   SumX  := 0.0;
+   SumY  := 0.0;
+   n     := 0.0;
+   SumX2 := 0.0;
+   SumY2 := 0.0;
+   SumXY := 0.0;
+end;
+
 
 {---------------------------------------------------------- main  program-}
 begin
@@ -418,15 +448,7 @@ begin
    LastX := 0;
    anglemode := 0;
 
-   SumX  := 0.0;
-   SumY  := 0.0;
-   n     := 0.0;
-   SumX2 := 0.0;
-   SumY2 := 0.0;
-   SumXY := 0.0;
-   
-
-
+   statclr;
    
    for i:=1 to 26 do begin
       s[i] := 0.0;
@@ -460,6 +482,9 @@ begin
       {handle non number keystrokes}
       case (k) of
 
+	123 : statsub;         {'Open Bracket'}
+	124 : statclr;         {'|'}
+	125 : statadd;         {'close bracket'}
 	76  : plastx;          {'L'}
 	33  : factorial;       {'!'}
 	65  : anglemodetoggle; {'A'}
