@@ -217,7 +217,7 @@ procedure helpscreen; {'?'}
 		 writeln('|-----------------------------------------------------------------------------|');
 		 writeln('| s sin, c cos, t tangent, q square root, r reciprocal                        |');
 		 writeln('| l logx - Log base Stack level 1, of number in Stack level 2                 |');
-		 writeln('|                                                                             |');
+		 writeln('| S arcsin, C arccos, T arctan                                                |');
 		 writeln('|                                                                             |');
 		 writeln('|                                                                             |');
 		 writeln('|-----------------------------------------------------------------------------|');
@@ -440,6 +440,60 @@ begin
    SumXY := 0.0;
 end;
 
+procedure statmean; { calculate the Mean }
+begin
+   if (n = 0) then
+   begin
+      collected := 'Zero summations available';
+   end else begin
+      LastX := s[1];
+      s[1] := SumX/n;
+      s[2] := Sumy/n;
+   end;
+end;
+
+procedure statstdev; { calculate standard dev}
+begin
+   if (n = 0) or (n = 1) then
+   begin
+      collected := 'More than 1 summation needed'
+   end else begin
+      LastX := s[1];
+      s[1] := sqrt(n*SumX2-((SumX)**2)/(n*(n-1)));
+      s[2] := sqrt(n*SumY2-((SumY)**2)/(n*(n-1)));
+   end;
+end;
+
+procedure arccosf;
+begin
+   if (s[1] < -1.0) or  (s[1] > 1.0) then
+      begin
+      collected := 'arccos out of domain';
+   end else begin
+      mtemp1 := arccos(Pop);
+      if anglemode = 0 then mtemp1 := (180/Pi)* mtemp1;
+      push(mtemp1);
+   end;
+end;
+
+procedure arcsinf;
+begin
+   if (s[1] < -1.0) or  (s[1] > 1.0) then
+   begin
+      collected := 'arcsin out of domain';
+   end else begin
+      mtemp1 := arcsin(Pop);
+      if anglemode = 0 then mtemp1 := (180/Pi)* mtemp1;
+      push(mtemp1);
+   end;
+end;
+
+procedure arctanf;
+begin
+   mtemp1 := arctan(Pop);
+   if anglemode = 0 then mtemp1 := (180/Pi)* mtemp1;
+   push(mtemp1);
+end;
 
 {---------------------------------------------------------- main  program-}
 begin
@@ -479,37 +533,42 @@ begin
       collected := '';
 
 
-      {handle non number keystrokes}
+      {handle non number keystrokes} {dispatch}
       case (k) of
 
+	101 : constE;          {'e'}
+	108 : logarithm;       {'l'}
+	112 : constPi;         {'p'}
+	113 : sqroot;          {'q'}
+	114 : reciprocal;      {'r'}
+	115 : sinf;            {'s'}
+	116 : tanf;            {'t'}
 	123 : statsub;         {'Open Bracket'}
 	124 : statclr;         {'|'}
 	125 : statadd;         {'close bracket'}
-	76  : plastx;          {'L'}
-	33  : factorial;       {'!'}
-	65  : anglemodetoggle; {'A'}
-	115 : sinf;            {'s'}
-	63  : helpscreen;      {'?'}
-	88  : xchange;         {'X'}
-	95  : cosf;            {'c'}
-	116 : tanf;            {'t'}
-	83  : drop;            {[del]}
-	27  : quit;            {[esc]}
-	43  : add;             {'+'}
-	47  : divide;          {'\'}
-	112 : constPi;         {'p'}
-	101 : constE;          {'e'}
-	113 : sqroot;          {'q'}
-	114 : reciprocal;      {'r'}
-	42  : multiply;        {'*'}
-	45  : subtract;        {'-'}
-	108 : logarithm;       {'l'}
-	94  : power;           {'^'}
-	62  : store;           {'>'}
-	60  : recall;          {'<'}
 	13  : enter;           {[enter]}
+	27  : quit;            {[esc]}
+	33  : factorial;       {'!'}
+	42  : multiply;        {'*'}
+	43  : add;             {'+'}
+	45  : subtract;        {'-'}
+	47  : divide;          {'\'}
+	60  : recall;          {'<'}
+	62  : store;           {'>'}
+	63  : helpscreen;      {'?'}
+	65  : anglemodetoggle; {'A'}
+	67  : arccosf;         {'C'}
+	68  : statstdev;       {'D'}
+	76  : plastx;          {'L'}
+	77  : statmean;        {'M'}
+	83  : arcsinf;         {'S'}
+	84  : arctanf;         {'T'}
+	88  : xchange;         {'X'}
 	91  : recallall;       {'['}
 	93  : saveall;         {']'}
+	94  : power;           {'^'}
+	99  : cosf;            {'c'}
+	
       end; {case}
 
    until done;
