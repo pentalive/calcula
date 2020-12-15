@@ -23,23 +23,25 @@ VAR
    { The Statistical Registers  }
    SumX,SumY,n,Sumx2,Sumy2,SumXY:double;
    
-   anglemode	   : integer;   { 0= degrees 1=rads should probs be}
-                                { an enumerated type               }
-   collected	   : string;    { collect number, keep error text  }
-   i,k		   : integer;   { integer indexes - k is ord of c  }
-   c		   : char;      { The readkey pressed by user      }
-   done		   : boolean;   { Remembers if esc is pressed      }
-   stacklift	   : boolean;   { Automatic Stack Lift             }   
-   t		   : double;    { gemeral temporary storage        }
-   mtemp1	   : double;    { Used when pulling numbers off    }
-   mtemp2	   : double;    { the stack for calculations       }
-   statusx,statusy : tcrtcoord; { location of the status line      }
-   regc		   : char;      { char for getting register letter }
-   regk		   : integer;   { ord of regc                      }
-   LastX	   : double;    { store LastX values               }
+   anglemode	   : integer;   { 0= degrees 1=rads should probs be  }
+                                { an enumerated type                 }
+   collected	   : string;    { collect number, keep error text    } 
+   i,k		   : integer;   { integer indexes - k is ord of c    } 
+   c		   : char;      { The readkey pressed by user        } 
+   done		   : boolean;   { Remembers if esc is pressed        } 
+   stacklift	   : boolean;   { Automatic Stack Lift               } 
+   escapeflag      : boolean;   { zero escape flag for extended keys }
+   t		   : double;    { gemeral temporary storage          } 
+   mtemp1	   : double;    { Used when pulling numbers off      } 
+   mtemp2	   : double;    { the stack for calculations         } 
+   statusx,statusy : tcrtcoord; { location of the status line        } 
+   regc		   : char;      { char for getting register letter   } 
+   regk		   : integer;   { ord of regc                        } 
+   LastX	   : double;    { store LastX values                 } 
+   nothing         : double;    { a place for results we don't need  }						    
 
 function IsNumber(c:char):boolean;
-begin
+begin 
 
    IsNumber := false;
 
@@ -64,7 +66,8 @@ begin
 
    if c='' then c := ' ';
    
-   write('|-Calcula ---------------------------------------------',c:2,k:04);
+   write('|-Calcula ------------------------------------------',c:2,k:04);
+   if escapeflag then write('[E]') else write ('[e]');
    if stacklift then write('[s]') else write('[ ]');
    writeln('--------------|');
    writeln('| stack                                  | registers                          |');
@@ -140,7 +143,13 @@ Begin
       if neg then write('-');
       write(collected:20,'  ');
 
+      escapeflag := false;
       c := readkey;
+      if (c = #0) then
+	 Begin
+	    escapeflag := true;
+	    c := readkey;
+	 end;
       
       if (ord(c) = 8) and (length(collected) > 0) then
 	 begin
@@ -229,7 +238,6 @@ procedure helpscreen; {'?'}
 		 writeln('|                                                                             |');
 		 writeln('|                                                                             |');
 		 writeln('|                                                                             |');
-	
 		 writeln('|------------------------------------------------- Press any key to continue -|');
 		 c := readkey;
 	      end;
@@ -546,6 +554,7 @@ begin
 	123 : statsub;         {'Open Bracket'}
 	124 : statclr;         {'|'}
 	125 : statadd;         {'close bracket'}
+	126 : nothing := pop;  {'~' delete}
 	13  : enter;           {[enter]}
 	27  : quit;            {[esc]}
 	33  : factorial;       {'!'}
